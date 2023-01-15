@@ -1,7 +1,8 @@
 var rowVar
 var htmlAddtext
-var max = 5
+var max
 var lastTurn
+var lastPlayerPlaced
 
 init();
 
@@ -16,8 +17,8 @@ function init() {
 		max = 3
 	rowVar = []
 	htmlAddtext = ''
+	lastTurn = 0
 	addRowAndColumn(max);
-	changeTurn()
 }
 
 function addRowAndColumn(count) {
@@ -66,26 +67,32 @@ function assignData(params) {
 		return
 	}
 
+	const currentId = params.id
+	const currentCol = currentId[0]
+	const currentRow = currentId[3]
+	rowVar[currentRow][currentCol] = lastTurn
+
 	let addText
-	if (lastTurn == 0 ) 	
+	if (lastTurn == 0 ) {
 		addText = `<button class="btn btn-lg btn-warning opacity-25">${lastTurn}</button>`
+		lastPlayerPlaced = currentId
+		}	
 	else
 		addText = `<button class="btn btn-lg btn-primary opacity-25">${lastTurn}</button>`
 
 	el.dataset.player = lastTurn
 	el.innerHTML = addText
 
-	const currentId = params.id
-	const currentCol = currentId[0]
-	const currentRow = currentId[3]
-	rowVar[currentRow][currentCol] = lastTurn
+	
 
-	checkNearBy(params)
+	checkNearBy(el)
+	changeTurn()
 	const filled = isFilled()
 
 	if (filled == false)
 		restart() 
-	changeTurn()
+	
+
 }
 
 function checkNearBy(params) {
@@ -115,34 +122,32 @@ function checkNearBy(params) {
 				winner()
 		}
 	}
-
-	
 }
 
-function checkRow(currentRow) {
+function checkRow(currentRow,maxVal = max) {
 	// body...
-	return sameThree(rowVar[currentRow])
+	return sameThree(rowVar[currentRow],maxVal)
 }
 
-function checkCol(colNo){
+function checkCol(colNo,maxVal = max){
 	//body...
 	const temp = []
 	for (var i = 0; i < max; i++) {
 		temp.push(rowVar[i][colNo])
 	}
 
-	return sameThree(temp)
+	return sameThree(temp,maxVal)
 }
 
-function checkDio(argument) {
+function checkDio(argument,maxVal = max) {
 	// body...
-	console.log('Dio')
+	// console.log('Dio')
 	if ( ((parseInt(argument.row) + parseInt(argument.col) ) % 2 ) == 0 ) {
-		const left = leftDioCheck()
+		const left = leftDioCheck(maxVal)
 		if (left == true) 
 			return true
 		else{
-			const right = rightDioCheck()
+			const right = rightDioCheck(maxVal)
 
 			if (right == true) 
 				return true
@@ -153,7 +158,7 @@ function checkDio(argument) {
 	
 }
 
-function leftDioCheck(argument) {
+function leftDioCheck(maxVal) {
 	// body...
 	const temp = []
 
@@ -165,10 +170,10 @@ function leftDioCheck(argument) {
 		}
 	}
 
-	return sameThree(temp)
+	return sameThree(temp,maxVal)
 }
 
-function rightDioCheck(argument) {
+function rightDioCheck(maxVal) {
 	// body...
 	const temp = []
 
@@ -180,14 +185,13 @@ function rightDioCheck(argument) {
 		}
 	}
 
-	return sameThree(temp)
-
+	return sameThree(temp,maxVal)
 }
 
-function sameThree(argument) {
+function sameThree(argument,maxCount) {
 	// body...
 	var elementCounts = argument.reduce((count, item) => (count[item] = count[item] + 1 || 1, count), {});
-	if (elementCounts[0] == 3 || elementCounts[1] == 3) 
+	if (elementCounts[0] == maxCount || elementCounts[1] == maxCount) 
 		return true	
 	else
 		return false
@@ -195,11 +199,16 @@ function sameThree(argument) {
 
 function changeTurn() {
 	// body...
-	if (lastTurn == 0 ) 
+	// console.log(lastTurn)
+	if (lastTurn == 0 ){
 		lastTurn = 1
+		var x = document.getElementById("flexCheckDefault").checked;
+		if (x == true) {
+			autoPlaced()
+		}
+	} 	
 	else
 		lastTurn = 0
-
 	document.getElementById('turn').innerHTML = `Player ${lastTurn}'s Turn`
 }
 
@@ -234,4 +243,54 @@ function isFilled(argument) {
 	}
 
 	return temp.includes(null)
+}
+
+function autoPlaced() {
+	// body...
+	const emptyPlaces = []
+	const playerPlaces = []
+	const possiblePlaces = []
+	const lastPlayerCol = parseInt(lastPlayerPlaced[0])
+	const lastPlayerRow = parseInt(lastPlayerPlaced[3])
+
+	for (var i = 0; i < max; i++) {
+		for (var j = 0; j < max; j++) {
+			if (rowVar[j][i] == null) 
+				emptyPlaces.push( {
+					id : i + 'of' + j
+				})
+
+			if (rowVar[j][i] == 0)
+				playerPlaces.push({
+					id : i + 'of' + j
+				})
+
+		}
+	}
+
+	// console.log('playerPlaces' , playerPlaces)
+	// console.log('emptyPlaces', emptyPlaces)
+	// console.log('lastPlayerPlaced',lastPlayerPlaced[0],lastPlayerPlaced[3])
+
+	// for (var i =(lastPlayerRow-1); i <= (lastPlayerRow+1) ; i++) {
+
+	// 	for(var j = (lastPlayerCol-1); j<= (lastPlayerCol+1); j++){
+	// 		if (j >= 0 && j < max && i >= 0 && i < max) {
+	// 			possiblePlaces.push({
+	// 				id : j + 'of' + i
+	// 			})
+	// 		}
+	// 	}
+	// }
+
+	// let result = []; 
+	// emptyPlaces.forEach((value)=>{
+	// 	possiblePlaces.forEach((val)=>{
+	// 		if ((value.id == val.id) && (result.includes(value.id) != true)) {
+	// 			result.push(value)
+	// 		}
+	// 	})
+	// });
+	// assignData(result[Math.floor(Math.random() * result.length)])
+	assignData(emptyPlaces[Math.floor(Math.random() * emptyPlaces.length)])
 }
