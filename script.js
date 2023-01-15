@@ -7,7 +7,13 @@ init();
 
 function init() {
 	// body...
-	console.log('Hii');
+	console.log('Hii Welcome to The Game This is Create By Darshan');
+	alert('Hii First Choose The Size Of Matrix Like 3x3 , 4x4..Note:- If you Choose 3x3 Then You have to match 3 and if you Type 4 then you have to match 4...');
+	const playerMax = prompt("Enter Size Of The Matrix", 3);
+	if (parseInt(playerMax) != NaN && parseInt(playerMax) < 6 && parseInt(playerMax)>2)
+		max = playerMax
+	else
+		max = 3
 	rowVar = []
 	htmlAddtext = ''
 	addRowAndColumn(max);
